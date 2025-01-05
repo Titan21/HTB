@@ -193,4 +193,9 @@ Web Server's Anti-CSRF Protection triggers and doesn't accept Hydra's Input
 Jenkins Web Interface allows executing arbitrary commands on host using Dashboard > Nodes > master > Script Console
 
 ### Tactics
+Find Port 135 open (smb)
+List all shares for Administrator (without password) using `smbclient -L 10.129.191.157 -U Administrator`
+Using Impacket collection, use `impacket-smbexec Administrator@10.129.191.157` to gain shell
 
+
+## Starting Point Tier 2
